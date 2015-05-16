@@ -1,2 +1,2 @@
 # algorithms
-A collection of algorithms implemented in various programming languages
+A collection of miscellaneous algorithms implemented in various programming languages
