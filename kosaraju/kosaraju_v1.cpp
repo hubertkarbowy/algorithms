@@ -5,7 +5,7 @@
 
 // 
 
-/* Author: Hubert Karbowy, hk - at - hubertkarbowy.pl
+/* Author:  Hubert Karbowy, hk - at - hubertkarbowy.pl
    
    This program computes the number of Strongly Connected
    Components in a directed acyclic graph using the Kosaraju
