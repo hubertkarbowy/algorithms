@@ -33,7 +33,7 @@ struct vertex
 int t=0; // global variable for keeping track of finishing times
 int s; // global variable for keeping track of SCC leaders
 int howmanysccs=0;
-
+int number_of_nodes=0;
 
 /* The two boolean parameters enable/disable displaying finishing
    times and node leaders */
@@ -60,25 +60,31 @@ void listAllEdges(map<int,vertex> &graph, bool showF, bool showL)
 	}
 }
 
-void dfs(map<int,vertex> &graph, int starting_node, int pass) // pass = 1 or 2
+int dfs(map<int,vertex> &graph, int starting_node, int pass) // pass = 1 or 2
 {
 	map<int,vertex>::iterator it;
 	vector<int>::iterator vit;
+	int count=0;
 	
 	it = graph.find(starting_node);
 	it -> second.explored = true;
+	count++;
 	if (pass==2) it->second.leader = s; // only relevant in the 2nd pass
 	vit = it->second.edges.begin();
 	while (vit != it->second.edges.end())
 	{
 		if (graph[*vit].explored==false)
 		{
-			dfs(graph, *vit, pass);
+			count=count+dfs(graph, *vit, pass);
 		}
 		advance(vit, 1);
 	}
 	t++;
-	if (pass==1) it -> second.f = t; // only relevant to the 1st pass
+	if (pass==1) 
+	{
+		it -> second.f = t; // only relevant to the 1st pass
+	}
+	return count;
 }
 
 
@@ -102,6 +108,13 @@ void reverseGraph(map<int,vertex> &graph, map<int,vertex> &reversed)
 	while (it != graph.end())
 	{
 		vit=it->second.edges.begin();
+		
+		rit=reversed.find(it->first);
+		if (rit==reversed.end()) // for sink vertices
+		{
+			reversed[it->first] = {it->first, {}, false, it->second.f, 0};	
+		}
+		
 		while (vit != it->second.edges.end())
 		{
 			rit=reversed.find(*vit);
@@ -191,20 +204,24 @@ int main()
 	}
 	
 	cout << "Input graph: \n";
-	listAllEdges(graph, false, false);
+	// listAllEdges(graph, false, false);
+	it = graph.end(); it--;
+	cout << "Final node is # " << it->second.label << "\n";
 	reverseGraph(graph, reversed_graph);
 	graph.clear(); // After the graph is reversed, we no longer need
 				   // the input one. This should free up some RAM.
 	
 	// First pass: Find finishing times on the reverse graph
-	it = reversed_graph.end();
+	it = reversed_graph.end(); it--;
+	
 	t=0;
+	
 	while (it != reversed_graph.begin())
 	{
 		if (it -> second.explored == false)
 		{
 			s=it->first;
-			dfs(reversed_graph,it->first,1);
+			number_of_nodes=dfs(reversed_graph,it->first,1);
 		}
 		advance(it,-1);
 	}
@@ -228,16 +245,23 @@ int main()
 	// Second pass:
 	s=0;
 	it=reversed_graph.end();
-	while (it != reversed_graph.begin())
+	
+	do
 	{
+		advance(it,-1);
 		if (it->second.explored == false)
 		{
 			howmanysccs++;
+			number_of_nodes=0;
 			s=it->first;
-			dfs(reversed_graph,it->first,2);
+			// cout << "Processing node # " <<s << "\n";
+			number_of_nodes=dfs(reversed_graph,it->first,2);
+			cout << "Graph " << howmanysccs << " has " << number_of_nodes << " SCCs\n";
+			
 		}
-		advance(it,-1);
-	}
+		
+	} while (it != reversed_graph.begin());
+	
 	cout << "Leader vertices after the 2nd pass:\n";
 	listAllEdges(reversed_graph, false, true);
 	cout << "There are " << howmanysccs << " SCCs in the graph";
